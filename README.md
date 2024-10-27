@@ -17,7 +17,7 @@ You will find that this starts all of the required Docker containers. You will f
 
  ## Stage 2: Loading the initial datasets into MongoDB
 
-You can now access the airflow web interface and run the dag named main_dag. This will do the following tasks:
+You can now access the airflow web interface and run the dag named first_dag. This will do the following tasks:
 
 1) Pull the weather dataset
 2) Push weather dataset into MongoDB
