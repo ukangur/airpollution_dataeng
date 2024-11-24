@@ -1,6 +1,6 @@
 # Airpollution Data Engineering project - Group 19
 
-## Stage 1: How to start the code
+## Stage 1 - INITIALIZING: How to start the code
 First you should copy the repository using git:
 
 `git clone https://github.com/ukangur/Airpollution_data_eng.git`
@@ -17,7 +17,7 @@ You will find that this starts all of the required Docker containers. Be patient
 * mongo-express (for mongodb) - localhost:8081
 * minio (for apache iceberg and duckdb) - localhost:9001
 
- ## Stage 2: Loading the initial datasets into MongoDB (EXTRACTING)
+ ## Stage 2 - EXTRACT: Loading the initial datasets into MongoDB
 
 You can now access the airflow web interface and run the dag named extract_dag. This will do the following tasks:
 
@@ -27,7 +27,7 @@ You can now access the airflow web interface and run the dag named extract_dag. 
 
 Note: we do not pull the airpollution dataset as this was sent to us directly by EKUK (Eesti Keskkonnauuringute Keskus).
 
-## Stage 3: Creating a combined dataset and pushing it to DuckDB (LOADING)
+## Stage 3 - LOAD: Creating a combined dataset and pushing it to DuckDB
 
 Run the dag named load_dag. This will do the following tasks:
 
@@ -35,12 +35,12 @@ Run the dag named load_dag. This will do the following tasks:
 2) Extract the raw data from MongoDB
 3) Push the MongoDB raw data into our new DuckDB database tables
 
-## Stage 4: Solving missing value issues, saving backups (TRANSFORMING)
+## Stage 4 - TRANSFORM: Solving missing value issues, saving backups.
 
 Run the dag named transform_dag. This will do the following tasks:
 
 1) Solves missing values for all DuckDB tables.
-2) Creates snapshot for all DuckDB tables.
-3) Combines DuckDB tables and saves encrypted parquet of it into MinIO S3.
+2) Creates snapshot for all DuckDB tables. This allows us to follow changes in case we get data for more recent years in the future.
+3) Combines DuckDB tables and saves encrypted parquet of it into MinIO S3. This works as a backup in case something might happen to the main database. 
 
 Note: We follow a modified mean substitution method for solving missing values. As weather data (i.e. temperature) varies for different months it did not make sense to just to select average over all data. Rather we looked at what was the averages for features per month and substituted missing values using their representative monthly means.
