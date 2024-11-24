@@ -35,7 +35,7 @@ Run the dag named load_dag. This will do the following tasks:
 2) Extract the raw data from MongoDB
 3) Push the MongoDB raw data into our new DuckDB database tables
 
-## Stage 3: Solving missing value issues, saving backups (TRANSFORMING)
+## Stage 4: Solving missing value issues, saving backups (TRANSFORMING)
 
 Run the dag named transform_dag. This will do the following tasks:
 
