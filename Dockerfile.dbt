@@ -1,26 +1,14 @@
-# Use PostgreSQL 16.4 as the base image
-FROM postgres:16.4
+FROM python:3.9-slim
 
-# Arguments for datasets
-ARG DATASETS=dellstore,iso3166,usda,world
-ARG PG_USER=postgres
-ARG PG_HOME=/home/$PG_USER
-ENV POSTGRES_USER postgres
-ENV POSTGRES_PASSWORD postgres
-# Setting this to ensure default database doesn't interfere
-ENV POSTGRES_DB donotuse
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libsqlite3-dev \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Enable psql history.
-RUN mkdir -p $PG_HOME && \
-    touch $PG_HOME/.psql_history && \
-    chown -R $PG_USER:$PG_USER $PG_HOME
+RUN pip install dbt-core dbt-duckdb
 
-WORKDIR /tmp
+WORKDIR /opt/airflow/dbt_project
 
-# Install necessary tools
-RUN apt-get update -y && \
-    apt-get install -y wget git unzip
-
-# Set the default user to postgres
-USER $PG_USER
-WORKDIR $PG_HOME
+ENTRYPOINT ["bash"]
