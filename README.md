@@ -1,7 +1,7 @@
 # Airpollution Data Engineering project - Group 19
 
 ## Stage 1 - INITIALIZING: How to start the code
-** learned skills used: ** Docker, privacy/security (safe handling of private keys)
+**learned skills used:** Docker, privacy/security (safe handling of private keys)
 
 First you should copy the repository using git:
 
@@ -20,7 +20,7 @@ You will find that this starts all of the required Docker containers. Be patient
 * minio (for apache iceberg and duckdb) - localhost:9001
 
  ## Stage 2 - EXTRACT: Loading the initial datasets into MongoDB
-** learned skills used: ** MongoDB, data governance (ensuring accuracy and timeliness)
+**learned skills used:** MongoDB, data governance (ensuring accuracy and timeliness)
 
 You can now access the airflow web interface and run the dag named extract_dag. This will do the following tasks:
 
@@ -31,7 +31,7 @@ You can now access the airflow web interface and run the dag named extract_dag. 
 Note: we do not pull the airpollution dataset as this was sent to us directly by EKUK (Eesti Keskkonnauuringute Keskus).
 
 ## Stage 3 - LOAD: Creating a combined dataset and pushing it to DuckDB
-** learned skills used: ** MongoDB, DuckDB, data governance (ensuring orderliness and uniqueness)
+**learned skills used:** MongoDB, DuckDB, data governance (ensuring orderliness and uniqueness)
 
 Run the dag named load_dag. This will do the following tasks:
 
@@ -40,7 +40,7 @@ Run the dag named load_dag. This will do the following tasks:
 3) Push the MongoDB raw data into our new DuckDB database tables
 
 ## Stage 4 - TRANSFORM: Solving missing value issues, saving backups.
-** learned skills used: ** DuckDB, dbt, Minio (S3), Apache Iceberg, privacy/security (saving encrypted backup), data governance (ensuring completeness)
+**learned skills used:** DuckDB, dbt, Minio (S3), Apache Iceberg, privacy/security (saving encrypted backup), data governance (ensuring completeness)
 
 Run the dag named transform_dag. This will do the following tasks:
 
