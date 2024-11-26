@@ -13,75 +13,105 @@ def get_mongo_client(mongo):
 
     client = MongoClient(
                 "mongodb://" + mongo + ":27017/",
-                username='admin',
-                password='admin'
+                username=os.getenv("MONGO_INITDB_ROOT_USERNAME"),
+                password=os.getenv("MONGO_INITDB_ROOT_PASSWORD")
             )
     return client
 
 def initialize_duckdb_tables():
-    print("Creating DuckDB table...")
+    print("Creating DuckDB tables...")
 
     db_path = "/opt/airflow/duckdb_data/airpolandweather.db"
 
     con = duckdb.connect(db_path)
 
+    # Create the Location table
+    con.execute("""
+    CREATE TABLE IF NOT EXISTS Location (
+        id INTEGER PRIMARY KEY,       -- Primary key
+        street TEXT,                  -- Street
+        city TEXT,                    -- City
+        county TEXT,                  -- County
+        country TEXT,                 -- Country
+        latitude TEXT,                -- Latitude
+        longitude TEXT,               -- Longitude
+        elevation_m FLOAT             -- Elevation above sea level (m)
+    );
+    """)
+
+    # Create the Station table
+    con.execute("""
+    CREATE TABLE IF NOT EXISTS Station (
+        id INTEGER PRIMARY KEY,       -- Primary key
+        name TEXT NOT NULL,           -- Station name
+        location_id INTEGER,          -- Foreign key to Location
+        FOREIGN KEY(location_id) REFERENCES Location(id)
+    );
+    """)
+
+    # Create the Radar table
+    con.execute("""
+    CREATE TABLE IF NOT EXISTS Radar (
+        id INTEGER PRIMARY KEY,           -- Primary key
+        station_id INTEGER NOT NULL,      -- Foreign key to Station
+        radar_radius_km FLOAT,            -- Radar radius in km
+        radar_frequency_band TEXT,        -- Radar frequency band
+        FOREIGN KEY(station_id) REFERENCES Station(id)
+    );
+    """)
+
     # Create the Date table
     con.execute("""
     CREATE TABLE IF NOT EXISTS Date (
-        id INTEGER PRIMARY KEY,
-        year INTEGER NOT NULL,    -- Year
-        month INTEGER NOT NULL,   -- Month
-        day INTEGER NOT NULL,     -- Day
-        time_utc TIME NOT NULL    -- Time (UTC)
+        id INTEGER PRIMARY KEY,       -- Primary key
+        year INTEGER NOT NULL,        -- Year
+        month INTEGER NOT NULL,       -- Month
+        day INTEGER NOT NULL          -- Day
     );
     """)
 
-    # Create the Temperature table
+    # Create the Time table
     con.execute("""
-    CREATE TABLE IF NOT EXISTS Temperature (
-        id INTEGER PRIMARY KEY,
-        date_id INTEGER NOT NULL REFERENCES Date(id),
-        air_temperature FLOAT,     -- Air Temperature (°C)
-        min_temperature FLOAT,     -- Hourly Minimum Temperature (°C)
-        max_temperature FLOAT      -- Hourly Maximum Temperature (°C)
+    CREATE TABLE IF NOT EXISTS Time (
+        id INTEGER PRIMARY KEY,       -- Primary key
+        hours INTEGER NOT NULL,       -- Hour
+        minutes INTEGER NOT NULL,     -- Minutes
+        seconds INTEGER NOT NULL      -- Seconds
     );
     """)
 
-    # Create the Wind table
+    # Create the Observation table
     con.execute("""
-    CREATE TABLE IF NOT EXISTS Wind (
-        id INTEGER PRIMARY KEY,
-        date_id INTEGER NOT NULL REFERENCES Date(id),
-        wind_direction FLOAT,      -- 10-minute Average Wind Direction (°)
-        avg_wind_speed FLOAT,      -- 10-minute Average Wind Speed (m/s)
-        max_wind_speed FLOAT       -- Hourly Maximum Wind Speed (m/s)
-    );
-    """)
+    CREATE TABLE IF NOT EXISTS Observation (
+        id INTEGER PRIMARY KEY,                -- Primary key
+        radar_id INTEGER NOT NULL,             -- Foreign key to Radar
+        date_id INTEGER NOT NULL,              -- Foreign key to Date
+        time_id INTEGER NOT NULL,              -- Foreign key to Time
 
-    # Create the Weather table
-    con.execute("""
-    CREATE TABLE IF NOT EXISTS Weather (
-        id INTEGER PRIMARY KEY,
-        date_id INTEGER NOT NULL REFERENCES Date(id),
-        solar_radiation FLOAT,              -- Hourly Sum Solar Radiation (W/m²)
-        sea_level_pressure FLOAT,           -- Sea Level Air Pressure (hPa)
-        station_level_pressure FLOAT,       -- Station-Level Air Pressure (hPa)
-        precipitation FLOAT,                -- Hourly Precipitation (mm)
-        relative_humidity FLOAT             -- Relative Humidity (%)
-    );
-    """)
+        air_temperature_c FLOAT,               -- Air Temperature (°C)
+        min_temperature_c FLOAT,               -- Hourly Minimum Temperature (°C)
+        max_temperature_c FLOAT,               -- Hourly Maximum Temperature (°C)
 
-    # Create the Air_Pollution table
-    con.execute("""
-    CREATE TABLE IF NOT EXISTS Airpollution (
-        id INTEGER PRIMARY KEY,
-        date_id INTEGER NOT NULL REFERENCES Date(id),
-        pm25_10 FLOAT,      -- PM2.5-10 (µg/m³)
-        pm25 FLOAT,         -- PM2.5 (µg/m³)
-        pm10 FLOAT,         -- PM10 (µg/m³)
-        so2 FLOAT,          -- SO2 (µg/m³)
-        no2 FLOAT,          -- NO2 (µg/m³)
-        o3 FLOAT            -- O3 (µg/m³)
+        wind_direction_deg FLOAT,              -- 10-minute Average Wind Direction (°)
+        avg_wind_speed_m_s FLOAT,              -- 10-minute Average Wind Speed (m/s)
+        max_wind_speed_m_s FLOAT,              -- Hourly Maximum Wind Speed (m/s)
+
+        solar_radiation_w_m2 FLOAT,            -- Hourly Sum Solar Radiation (W/m²)
+        sea_level_pressure_hPa FLOAT,          -- Sea Level Air Pressure (hPa)
+        station_level_pressure_hPa FLOAT,      -- Station-Level Air Pressure (hPa)
+        precipitation_mm FLOAT,                -- Hourly Precipitation (mm)
+        relative_humidity_pct FLOAT,           -- Relative Humidity (%)
+
+        pm25_10_ug_m3 FLOAT,                   -- PM2.5-10 (µg/m³)
+        pm25_ug_m3 FLOAT,                      -- PM2.5 (µg/m³)
+        pm10_ug_m3 FLOAT,                      -- PM10 (µg/m³)
+        so2_ug_m3 FLOAT,                       -- SO2 (µg/m³)
+        no2_ug_m3 FLOAT,                       -- NO2 (µg/m³)
+        o3_ug_m3 FLOAT,                        -- O3 (µg/m³)
+
+        FOREIGN KEY(radar_id) REFERENCES Radar(id),
+        FOREIGN KEY(date_id) REFERENCES Date(id),
+        FOREIGN KEY(time_id) REFERENCES Time(id)
     );
     """)
 
@@ -89,10 +119,10 @@ def initialize_duckdb_tables():
 
 def extract_data(**kwargs):
     try:
-        print("Trying to connect to mongoDB...")
+        print("Trying to connect to MongoDB...")
         client = get_mongo_client("mongo")
-        db = client.airweather_database
-        print("Successfully connected to mongodb collection airweather!")
+        db = client.raw_observation
+        print("Successfully connected to MongoDB collection airweather!")
 
         def clean_mongo_document(doc):
             if '_id' in doc:
@@ -100,19 +130,27 @@ def extract_data(**kwargs):
             return doc
 
         weather_data = [clean_mongo_document(doc) for doc in db.weather_data.find()]
-        airpollution_data = [clean_mongo_document(doc) for doc in db.airpollution_data.find()]
+        print(f"Fetched {len(weather_data)} weather data documents.")
 
+        airpollution_data = [clean_mongo_document(doc) for doc in db.airpollution_data.find()]
+        print(f"Fetched {len(airpollution_data)} air pollution data documents.")
+
+        station_data = [clean_mongo_document(doc) for doc in db.station_data.find()]
+        print(f"Fetched {len(station_data)} station data documents.")
 
         client.close()
 
-        return {'weather': weather_data, 'air_pollution': airpollution_data}
+        return {
+            'weather': weather_data,
+            'air_pollution': airpollution_data,
+            'stations': station_data
+        }
     except Exception as e:
         print(f"Error while extracting data: {e}")
         return None
 
-def load_and_transform_data(**kwargs):
+def load_to_duckdb(**kwargs):
     try:
-
         ti = kwargs['ti']
         data = ti.xcom_pull(task_ids='extract_data')
 
@@ -124,124 +162,195 @@ def load_and_transform_data(**kwargs):
         print("Connected to DuckDB database")
 
         weather_data = pd.DataFrame(data['weather'])
-        print(weather_data.head(1))
         airpollution_data = pd.DataFrame(data['air_pollution'])
-        print(airpollution_data.head(1))
+        station_data = pd.DataFrame(data['stations'])
 
+        print(weather_data.head(1))
+        print(airpollution_data.head(1))
+        print(station_data.head(1))
+
+        # Process Location table
+        if not station_data.empty:
+            print("Loading Location data into DuckDB...")
+            location_data = station_data[['street', 'city', 'county', 'country', 'latitude', 'longitude', 'elevation_m']]
+            location_data = location_data.drop_duplicates()
+            location_data['id'] = range(1, len(location_data) + 1)
+            location_data = location_data[['id','street', 'city', 'county', 'country', 'latitude', 'longitude', 'elevation_m']]
+
+            print(location_data.head(1))
+            con.execute("INSERT INTO Location SELECT * FROM location_data")
+
+        # Process Station table
+        if not station_data.empty:
+            print("Loading Station data into DuckDB...")
+            station_data = station_data.merge(
+                location_data[['id', 'street', 'city', 'county', 'country', 'latitude', 'longitude', 'elevation_m']],
+                on=['street', 'city', 'county', 'country', 'latitude', 'longitude', 'elevation_m'],
+                how='left'
+            ).rename(columns={'id': 'location_id'})
+
+            station_table_data = station_data[['name', 'location_id']].drop_duplicates()
+            station_table_data['id'] = range(1, len(station_table_data) + 1)
+            station_table_data = station_table_data[['id','name', 'location_id']]
+
+            print(station_table_data.head(1))
+            con.execute("INSERT INTO Station SELECT * FROM station_table_data")
+
+        # Process Radar table
+        if not station_data.empty:
+            print("Loading Radar data into DuckDB...")
+            station_data = station_data.merge(
+            station_table_data[['id', 'name']],
+            left_on='name',
+            right_on='name',
+            how='left'
+            ).rename(columns={'id': 'station_id'})
+
+            radar_data = station_data[['station_id', 'radar_radius_km', 'radar_frequency_band']]
+            radar_data = radar_data.drop_duplicates()
+            radar_data['id'] = range(1, len(radar_data) + 1)
+            radar_data = radar_data[['id', 'station_id', 'radar_radius_km', 'radar_frequency_band']]
+
+            print(radar_data.head(1))
+            con.register('radar_data', radar_data)
+            con.execute("INSERT INTO Radar SELECT * FROM radar_data")
         # Process Date table
         if not weather_data.empty or not airpollution_data.empty:
             print("Loading Date data into DuckDB...")
 
-            if not weather_data.empty:
-                weather_data['time_utc'] = weather_data['time'].apply(
-                    lambda x: x if isinstance(x, str) and ':' in x else "00:00"
-                )
-
-            if not airpollution_data.empty:
-                airpollution_data['date'] = airpollution_data['date'].fillna("").astype(str)
+            airpollution_data['date'] = airpollution_data['date'].astype(str)
+            airpollution_dates = airpollution_data['date'].str.split('-', expand=True).rename(
+                columns={0: 'year', 1: 'month', 2: 'day'}
+            )
+            airpollution_dates['year'] = airpollution_dates['year'].astype(int)
+            airpollution_dates['month'] = airpollution_dates['month'].astype(int)
+            airpollution_dates['day'] = airpollution_dates['day'].astype(int)
 
             date_data = pd.concat(
                 [
-                    weather_data[['year', 'month', 'day', 'time_utc']],
-                    airpollution_data['date'].str.split('-', expand=True).rename(
-                        columns={0: 'year', 1: 'month', 2: 'day'}
-                    ).assign(time_utc='00:00')
+                    weather_data[['year', 'month', 'day']],
+                    airpollution_dates[['year', 'month', 'day']]
+                ],
+                ignore_index=True
+            )
+            date_data = date_data.drop_duplicates().reset_index(drop=True)
+            date_data['id'] = range(1, len(date_data) + 1)
+
+            date_data = date_data[['id', 'year', 'month', 'day']]
+
+            print(date_data.head(1))
+            con.register('date_data', date_data)
+            con.execute("INSERT INTO Date SELECT * FROM date_data")
+
+        # Process Time table
+        if not weather_data.empty or not airpollution_data.empty:
+            print("Loading Time data into DuckDB...")
+
+            airpollution_times = pd.DataFrame({
+                'hours': [0],
+                'minutes': [0],
+                'seconds': [0]
+            })
+
+            weather_data['time_utc'] = weather_data['time_utc'].fillna("00:00")
+            weather_times = weather_data['time_utc'].str.split(':', expand=True).rename(
+                columns={0: 'hours', 1: 'minutes'}
+            )
+            weather_times['seconds'] = 0
+            weather_times['hours'] = weather_times['hours'].astype(int)
+            weather_times['minutes'] = weather_times['minutes'].astype(int)
+            weather_times['seconds'] = weather_times['seconds'].astype(int)
+
+            time_data = pd.concat([weather_times, airpollution_times], ignore_index=True)
+            time_data = time_data.drop_duplicates().reset_index(drop=True)
+            time_data['id'] = range(1, len(time_data) + 1)
+
+            time_data = time_data[['id', 'hours', 'minutes', 'seconds']]
+
+            print(time_data.head(1))
+            con.register('time_data', time_data)
+            con.execute("INSERT INTO Time SELECT * FROM time_data")
+
+        # Process Observation table
+        if not weather_data.empty or not airpollution_data.empty:
+            print("Loading Observation data into DuckDB...")
+
+            time_data['time_key'] = time_data['hours'].astype(str).str.zfill(2) + ":" + \
+                                    time_data['minutes'].astype(str).str.zfill(2) + ":" + \
+                                    time_data['seconds'].astype(str).str.zfill(2)
+
+            weather_data['time_key'] = weather_data['time_utc'] + ":00"
+
+            weather_data = weather_data.merge(
+                time_data[['time_key', 'id']].rename(columns={'id': 'time_id'}),
+                on='time_key',
+                how='left'
+            )
+
+            weather_data = weather_data.merge(
+                date_data[['year', 'month', 'day', 'id']].rename(columns={'id': 'date_id'}),
+                on=['year', 'month', 'day'],
+                how='left'
+            )
+
+            airpollution_data['year'], airpollution_data['month'], airpollution_data['day'] = zip(
+                *airpollution_data['date'].str.split('-').apply(lambda x: (int(x[0]), int(x[1]), int(x[2])))
+            )
+
+            airpollution_data = airpollution_data.merge(
+                date_data[['year', 'month', 'day', 'id']].rename(columns={'id': 'date_id'}),
+                on=['year', 'month', 'day'],
+                how='left'
+            )
+
+            default_time = time_data[(time_data['hours'] == 0) & (time_data['minutes'] == 0) & (time_data['seconds'] == 0)]
+            if not default_time.empty:
+                default_time_id = default_time['id'].iloc[0]
+                airpollution_data['time_id'] = default_time_id
+            else:
+                raise ValueError("Default time_id for 00:00:00 not found in Time table.")
+
+            combined_data = pd.concat(
+                [
+                    weather_data[['date_id', 'time_id', 'air_temperature_c', 'min_temperature_c',
+                                'max_temperature_c', 'wind_direction_deg', 'avg_wind_speed_m_s', 'max_wind_speed_m_s',
+                                'solar_radiation_w_m2', 'sea_level_pressure_hPa', 'station_level_pressure_hPa',
+                                'precipitation_mm', 'relative_humidity_pct']],
+                    airpollution_data[['date_id', 'time_id', 'pm25_10_ug_m3', 'pm25_ug_m3', 'pm10_ug_m3', 'so2_ug_m3',
+                                    'no2_ug_m3', 'o3_ug_m3']]
                 ],
                 ignore_index=True
             )
 
-            date_data['year'] = date_data['year'].astype(int)
-            date_data['month'] = date_data['month'].astype(int)
-            date_data['day'] = date_data['day'].astype(int)
-            date_data['time_utc'] = date_data['time_utc'].astype(str)
-            date_data = date_data.drop_duplicates(subset=['year', 'month', 'day', 'time_utc'])
-            date_data['id'] = range(1, len(date_data) + 1)
+            combined_data['radar_id'] = 1
 
-            date_data = date_data[['id', 'year', 'month', 'day', 'time_utc']]
+            observation_data = combined_data[[
+                'date_id', 'time_id', 'radar_id',
+                'air_temperature_c', 'min_temperature_c', 'max_temperature_c',
+                'wind_direction_deg', 'avg_wind_speed_m_s', 'max_wind_speed_m_s',
+                'solar_radiation_w_m2', 'sea_level_pressure_hPa', 'station_level_pressure_hPa',
+                'precipitation_mm', 'relative_humidity_pct',
+                'pm25_10_ug_m3', 'pm25_ug_m3', 'pm10_ug_m3', 'so2_ug_m3', 'no2_ug_m3', 'o3_ug_m3'
+            ]]
 
-            print(date_data.head(2))
+            observation_data['id'] = range(1, len(observation_data) + 1)
 
-            con.sql("INSERT INTO Date SELECT * FROM date_data")
+            observation_data = observation_data[[
+                'id', 'radar_id', 'date_id', 'time_id',
+                'air_temperature_c', 'min_temperature_c', 'max_temperature_c',
+                'wind_direction_deg', 'avg_wind_speed_m_s', 'max_wind_speed_m_s',
+                'solar_radiation_w_m2', 'sea_level_pressure_hPa', 'station_level_pressure_hPa',
+                'precipitation_mm', 'relative_humidity_pct',
+                'pm25_10_ug_m3', 'pm25_ug_m3', 'pm10_ug_m3', 'so2_ug_m3', 'no2_ug_m3', 'o3_ug_m3'
+            ]]
 
-        # Process Temperature table
-        if not weather_data.empty:
-            print("Loading Temperature data into DuckDB...")
-
-            weather_data['year'] = weather_data['year'].astype(int)
-            weather_data['month'] = weather_data['month'].astype(int)
-            weather_data['day'] = weather_data['day'].astype(int)
-            weather_data['time_utc'] = weather_data['time_utc'].astype(str)
-
-            weather_data = weather_data.merge(
-                date_data[['year', 'month', 'day', 'time_utc', 'id']],
-                on=['year', 'month', 'day', 'time_utc'],
-                how='left'
-            ).rename(columns={'id': 'date_id'})
-
-            temperature_data = weather_data[['date_id', 'temp', 'temp_min', 'temp_max']].rename(
-                columns={'temp': 'air_temperature', 'temp_min': 'min_temperature', 'temp_max': 'max_temperature'}
-            )
-
-            temperature_data['id'] = range(1, len(temperature_data) + 1)
-            temperature_data = temperature_data[['id', 'date_id', 'air_temperature', 'min_temperature', 'max_temperature']]
-            print(temperature_data.head(1))
-
-            con.sql("INSERT INTO Temperature SELECT * FROM temperature_data")
-
-        # Process Wind table
-        if not weather_data.empty:
-            print("Loading Wind data into DuckDB...")
-            wind_data = weather_data[['date_id', 'wind_dir', 'wind_speed', 'wind_max_speed']].rename(
-                columns={'wind_dir': 'wind_direction', 'wind_speed': 'avg_wind_speed', 'wind_max_speed': 'max_wind_speed'}
-            )
-
-            wind_data['id'] = range(1, len(wind_data) + 1)
-            wind_data = wind_data[['id', 'date_id', 'wind_direction', 'avg_wind_speed', 'max_wind_speed']]
-            print(wind_data.head(1))
-
-            con.sql("INSERT INTO Wind SELECT * FROM wind_data")
-
-        # Process Weather table
-        if not weather_data.empty:
-            print("Loading Weather data into DuckDB...")
-            weather_table_data = weather_data[['date_id', 'solar_radiation', 'sea_level_pressure', 'station_pressure',
-                                               'precipitation', 'humidity']].rename(
-                columns={'station_pressure': 'station_level_pressure', 'humidity': 'relative_humidity'}
-            )
-
-            weather_table_data['id'] = range(1, len(weather_table_data) + 1)
-            weather_table_data = weather_table_data[['id', 'date_id', 'solar_radiation', 'sea_level_pressure', 'station_level_pressure', 'precipitation', 'relative_humidity']]
-
-            print(weather_table_data.head(1))
-            con.sql("INSERT INTO Weather SELECT * FROM weather_table_data")
-
-        # Process Air Pollution table
-        if not airpollution_data.empty:
-            print("Loading Air Pollution data into DuckDB...")
-            airpollution_data[['year', 'month', 'day']] = airpollution_data['date'].str.split('-', expand=True)
-            airpollution_data['year'] = airpollution_data['year'].astype(int)
-            airpollution_data['month'] = airpollution_data['month'].astype(int)
-            airpollution_data['day'] = airpollution_data['day'].astype(int)
-            airpollution_data['time_utc'] = '00:00'
-
-            airpollution_data = airpollution_data.merge(
-                date_data[['year', 'month', 'day', 'time_utc', 'id']],
-                on=['year', 'month', 'day', 'time_utc'],
-                how='left'
-            ).rename(columns={'id': 'date_id'})
-
-            airpollution_data['id'] = range(1, len(airpollution_data) + 1)
-            pollution_data = airpollution_data[['id', 'date_id', 'pm25_10', 'pm25', 'pm10', 'so2', 'no2', 'o3']]
-            print(pollution_data.head(1))
-
-            con.sql("INSERT INTO Airpollution SELECT * FROM pollution_data")
+            print(observation_data.head(1))
+            con.register('observation_data', observation_data)
+            con.execute("INSERT INTO Observation SELECT * FROM observation_data")
 
         print("All data successfully loaded into DuckDB!")
     except Exception as e:
         print(f"Error while loading data: {e}")
-
-def transform_data():
-    return None
 
 default_args_dict = {
     'start_date': airflow.utils.dates.days_ago(0),
@@ -269,11 +378,11 @@ extract_task = PythonOperator(
     dag=load_dag
 )
 
-load_and_transform_task = PythonOperator(
-    task_id='load_and_transform_data',
-    python_callable=load_and_transform_data,
+load_to_duckdb_task = PythonOperator(
+    task_id='load_to_duckdb',
+    python_callable=load_to_duckdb,
     op_kwargs={'data': '{{ task_instance.xcom_pull(task_ids="transform_data") }}'},
     dag=load_dag
 )
 
-initalize_duckdb_task >> extract_task >> load_and_transform_task
+initalize_duckdb_task >> extract_task >> load_to_duckdb_task
