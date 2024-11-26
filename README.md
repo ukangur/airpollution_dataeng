@@ -1,5 +1,8 @@
 # Airpollution Data Engineering project - Group 19
 
+## Database schema
+![Database schema image](db_schema.png?raw=true "Title")
+
 ## Stage 1 - INITIALIZING: How to start the code
 **learned skills used:** Docker, privacy/security (safe handling of private keys)
 
@@ -44,8 +47,8 @@ Run the dag named load_dag. This will do the following tasks:
 
 Run the dag named transform_dag. This will do the following tasks:
 
-1) Solves missing values for all DuckDB tables.
-2) Creates snapshot for all DuckDB tables. This allows us to follow changes in case we get data for more recent years in the future.
-3) Combines DuckDB tables and saves encrypted parquet of it into MinIO S3. This works as a backup in case something might happen to the main database. 
+1) Solves missing values for all Observation fact table.
+2) Creates snapshot for Observation fact table. This allows us to follow changes in case we get data for more recent years in the future.
+3) Saves encrypted parquet of Observation table into MinIO S3. This works as a backup in case something might happen to the main database. 
 
 Note: We follow a modified mean substitution method for solving missing values. As weather data (i.e. temperature) varies for different months it did not make sense to just to select average over all data. Rather we looked at what was the averages for features per month and substituted missing values using their representative monthly means.
