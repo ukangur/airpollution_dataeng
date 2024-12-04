@@ -104,7 +104,7 @@ def get_stationdata():
     "elevation_m": [elevation_m],
     "radar_radius_km": [radar_radius_km],
     "radar_frequency_band": [radar_frequency_band],
-    "name": [name]
+    "station_name": [name]
     }
 
     df = pd.DataFrame(data)
