@@ -38,9 +38,11 @@ Note: we do not pull the airpollution dataset as this was sent to us directly by
 
 Run the dag named load_dag. This will do the following tasks:
 
-1) Initialize the DuckDB database with all required tables and keys (as mentioned also in ER diagramm.docx)
+1) Initialize the DuckDB database with all required tables and keys (as mentioned also in the schema image)
 2) Extract the raw data from MongoDB
 3) Push the MongoDB raw data into our new DuckDB database tables
+
+Since the air pollution data only provides a single measurement for each day, we duplicate that daily data across all hours of the day. This ensures that the air pollution data matches the same level of detail (hourly) as the weather data.
 
 ## Stage 4 - TRANSFORM: Solving missing value issues, saving backups.
 **learned skills used:** DuckDB, dbt, Minio (S3), Apache Iceberg, privacy/security (saving encrypted backup), data governance (ensuring completeness)
