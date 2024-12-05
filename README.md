@@ -1,7 +1,7 @@
 # Airpollution Data Engineering project - Group 19
 
 ## Project concept figure
-![project figure image](DE graph.png?raw=true "Title")
+![project figure image](DE_graph.png?raw=true "Title")
 
 ## Database schema
 ![Database schema image](db_schema.png?raw=true "Title")
