@@ -4,7 +4,7 @@
 
 The project aims to investigate how meteorological factors, such as temperature, wind speed, and direction, affect air quality in Tallinn. It focuses on how these conditions influence the movement and concentration of pollutants, including PM10, SO2, NO2, and O3, which are measured by local institutions. The project will analyze the correlations and temporal patterns of meteorological features and air pollution from 2001 to 2024. The main research questions focus on the influence of temperature and wind speed on air pollution levels and the impact of seasonal and weekly variations.
 
-This project provides insights into how meteorological factors influence air pollution in Tallinn, enabling the development of predictive models and targeted policies to mitigate pollution during high-risk conditions. The government can use this data to issue timely public health alerts, guide urban planning, and promote sustainable practices for improved air quality and public health.
+The project enables future development of predictive models and targeted policies to mitigate pollution during high-risk conditions. The Estonian government can use this data to issue timely public health alerts, guide urban planning, and promote sustainable practices for improved air quality and public health.
 
 ## Project concept figure
 ![project figure image](DE_graph.png?raw=true "Title")
