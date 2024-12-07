@@ -47,7 +47,7 @@ Note: we do not pull the airpollution dataset as this was sent to us directly by
 ## Stage 3 - LOAD: Creating a combined dataset and pushing it to DuckDB
 **learned skills used:** MongoDB, DuckDB, data governance (ensuring orderliness and uniqueness)
 
-Run the dag named load_dag. This will do the following tasks:
+Run the dag named load_dag. This can take some time due to a lot of joins/foreign key matchings. Be patient and expect a runtime of 5-10 minutes. This will do the following tasks:
 
 1) Initialize the DuckDB database with all required tables and keys (as mentioned also in the schema image)
 2) Extract the raw data from MongoDB
