@@ -66,7 +66,7 @@ Run the dag named transform_dag. This will do the following tasks:
 
 Note: We follow a modified mean substitution method for solving missing values. As weather data (i.e. temperature) varies for different months it did not make sense to just to select average over all data. Rather we looked at what was the averages for features per month and substituted missing values using their representative monthly means.
 
-## Stage 5 - VISUALIZATION: Getting answers through graphs.
+## Stage 5 - VISUALIZE: Getting answers through graphs.
 
 Go back to the command line and run:
 
