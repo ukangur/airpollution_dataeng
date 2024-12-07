@@ -33,6 +33,8 @@ You will find that this starts all of the required Docker containers. Be patient
 * mongo-express (for mongodb) - localhost:8081
 * minio (for apache iceberg and duckdb) - localhost:9001
 
+Note: we noticed that airflow seems to save previously used usernames and passwords from previous docker container runs. If you wish this to not be the case, there is a solution for this (however it is not neccesary for the sake of this project): https://stackoverflow.com/questions/77530965/setting-default-password-to-airflow-docker
+
  ## Stage 2 - EXTRACT: Loading the initial datasets into MongoDB
 **learned skills used:** MongoDB, data governance (ensuring accuracy and timeliness)
 
