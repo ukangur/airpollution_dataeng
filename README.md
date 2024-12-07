@@ -65,3 +65,12 @@ Run the dag named transform_dag. This will do the following tasks:
 3) Saves encrypted parquet of Observation table into MinIO S3. This works as a backup in case something might happen to the main database. 
 
 Note: We follow a modified mean substitution method for solving missing values. As weather data (i.e. temperature) varies for different months it did not make sense to just to select average over all data. Rather we looked at what was the averages for features per month and substituted missing values using their representative monthly means.
+
+## Stage 5 - VISUALIZATION: Getting answers through graphs.
+
+Go back to the command line and run:
+
+`docker exec -it streamlit /bin/bash`
+`streamlit run app.py`
+
+You can now see the visual streamlit application on localhost:8501.
