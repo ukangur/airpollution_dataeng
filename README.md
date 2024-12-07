@@ -71,6 +71,7 @@ Note: We follow a modified mean substitution method for solving missing values. 
 Go back to the command line and run:
 
 `docker exec -it streamlit /bin/bash`
+
 `streamlit run app.py`
 
 You can now see the visual streamlit application on localhost:8501.
