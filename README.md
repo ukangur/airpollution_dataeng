@@ -74,4 +74,4 @@ Go back to the command line and run:
 
 `streamlit run app.py`
 
-You can now see the visual streamlit application on localhost:8501.
+You can now see the visual streamlit application on localhost:8501. We have also added the result figures for easy access into the project folder subfolder results_images. There you can find all of the figures and their relation to questions q1, q2 and q3.
