@@ -11,7 +11,7 @@ The project enables future development of predictive models and targeted policie
 
 The 1,2,3,4 here indicate order of actions (first we transform missing values, then we store an encrypted copy, finally we visualize).
 
-## Database schema
+## Database star-schema
 ![Database schema image](db_schema.png?raw=true "Title")
 
 # How does it work?
