@@ -9,6 +9,8 @@ The project enables future development of predictive models and targeted policie
 ## Project concept figure
 ![project figure image](DE_graph.png?raw=true "Title")
 
+The 1,2,3,4 here indicate order of actions (i.e. first we transform missing values, then we store an encrypted copy).
+
 ## Database schema
 ![Database schema image](db_schema.png?raw=true "Title")
 
