@@ -9,9 +9,7 @@ The project enables future development of predictive models and targeted policie
 ## Project concept figure
 ![project figure image](DE_graph.png?raw=true "Title")
 
-The 1,2,3,4 here indicate order of actions (first we transform missing values, then we store an encrypted copy, finally we visualize).
-
-## Database star-schema
+## Database schema
 ![Database schema image](db_schema.png?raw=true "Title")
 
 # How does it work?
@@ -49,7 +47,7 @@ Note: we do not pull the airpollution dataset as this was sent to us directly by
 ## Stage 3 - LOAD: Creating a combined dataset and pushing it to DuckDB
 **learned skills used:** MongoDB, DuckDB, data governance (ensuring orderliness and uniqueness)
 
-Run the dag named load_dag. This can take some time due to a lot of joins/foreign key matchings. Be patient and expect a runtime of 5-10 minutes. This will do the following tasks:
+Run the dag named load_dag. This will do the following tasks:
 
 1) Initialize the DuckDB database with all required tables and keys (as mentioned also in the schema image)
 2) Extract the raw data from MongoDB
@@ -67,13 +65,3 @@ Run the dag named transform_dag. This will do the following tasks:
 3) Saves encrypted parquet of Observation table into MinIO S3. This works as a backup in case something might happen to the main database. 
 
 Note: We follow a modified mean substitution method for solving missing values. As weather data (i.e. temperature) varies for different months it did not make sense to just to select average over all data. Rather we looked at what was the averages for features per month and substituted missing values using their representative monthly means.
-
-## Stage 5 - VISUALIZE: Getting answers through graphs.
-
-Go back to the command line and run:
-
-`docker exec -it streamlit /bin/bash`
-
-`streamlit run app.py`
-
-You can now see the visual streamlit application on localhost:8501. Please be sure to turn streamlit into dark mode from the settings. This is important as the figures have white text in labels.

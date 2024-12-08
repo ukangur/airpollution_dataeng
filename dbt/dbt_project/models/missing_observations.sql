@@ -55,8 +55,16 @@ filled_values AS (
 )
 SELECT
     o.id,
+    o.location_id,
     o.date_id,
     o.time_id,
+    o.wind_id,
+    o.rain_id,
+    o.pressure_id,
+    o.temperature_id,
+    o.radiation_id,
+    o.humidity_id,
+    o.airpollution_id,
     air_temperature_c_filled AS air_temperature_c,
     min_temperature_c_filled AS min_temperature_c,
     max_temperature_c_filled AS max_temperature_c,
