@@ -200,7 +200,7 @@ else:
         st.pyplot(fig)
 
         # Plot 2: Line Plot of Temperature and Air Pollution Over Time (Aggregated by Year)
-        st.subheader(f"Plot 1: Line Plot of Temperature and Air Pollution Over Time")
+        st.subheader(f"Plot 2: Line Plot of Temperature and Air Pollution Over Time")
         df["year"] = df["date"].dt.year
         yearly_aggregated = df.groupby("year").mean().reset_index()
 
@@ -346,7 +346,7 @@ else:
         st.pyplot(fig)
 
         # Plot 2: Yearly Wind Speed and Air Pollution Metrics
-        st.subheader(f"Plot 1: Line Plot of Wind Speed and Air Pollution Over Time")
+        st.subheader(f"Plot 2: Line Plot of Wind Speed and Air Pollution Over Time")
         fig, axes = plt.subplots(3, 2, figsize=(26, 18), facecolor="none")
         axes = axes.flatten()
 
@@ -389,7 +389,6 @@ else:
 
         # Plot 3: Correlation Matrix Heatmap
         st.subheader(f"Plot 3: Temperature and Airpollution Correlation Matrix Heatmap")
-        st.subheader(f"Correlation Plot: Wind Speed, Direction, and Air Pollution")
         x_features = ["avg_wind_speed_m_s", "max_wind_speed_m_s", "wind_direction_deg"]
         x_aliases = ["Average Wind Speed", "Max Wind Speed", "Wind Direction"]
         y_features = ["so2", "no2", "pm25", "pm10", "o3"]
