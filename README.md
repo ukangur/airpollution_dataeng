@@ -6,6 +6,21 @@ The project aims to investigate how meteorological factors, such as temperature,
 
 The project enables future development of predictive models and targeted policies to mitigate pollution during high-risk conditions. The Estonian government can use this data to issue timely public health alerts, guide urban planning, and promote sustainable practices for improved air quality and public health.
 
+## Datasets
+
+For this analysis we utilized two primary datasets:
+
+* Airpollution dataset: This dataset contains airpollution metrics from 2001 to 2020 for the Tallinn city region. The metrics included are SO2, PM25, PM10, O3, NO2. This dataset was provided by the Eesti Keskonnauuringute Keskus.
+* Weather dataset: This dataset contains weather measurements from 2004 to 2024 for the Harku-Tallinn region. The measurements include temperature, wind speed, rainfall, etc. This was collected from Ilmateenistus web page.
+
+## Research questions
+
+Our research questions for the project were the following:
+
+1) Does temperature influence air pollution levels in Tallinn, and if so, how? 
+2) Does wind speed influence air pollution levels in Tallinn, and if so, how? 
+3) On which days of the week, months, and seasons do meteorological features have the greatest and least impact on air pollution in Tallinn?
+
 ## Project concept figure
 ![project figure image](DE_graph.png?raw=true "Title")
 
